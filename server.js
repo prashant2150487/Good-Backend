@@ -15,6 +15,10 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
+
+// API Routes
+// Admin routes
+
 app.get("/", (req, res) => {
   res.send("Hello, Node.js with Mongoose!");
 });
