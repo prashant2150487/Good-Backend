@@ -1,10 +1,10 @@
 // @desc    Register admin
 // @route   POST /api/admin/auth/register
 
-import User from "../../models/User";
-const checkUser = async () => {
+import User from "../../models/User.js";
+const checkUser = async (req,res) => {
   try {
-    const { email } = require.body;
+    const { email} = require.body;
     if (!email) {
       return res.status(400).json({
         success: false,
@@ -123,4 +123,4 @@ const sendOTPEmail = async (email, otp) => {
     // await transporter.sendMail(mailOptions);
   };
 
-export { register, login, checkUser };
+export { checkUser };

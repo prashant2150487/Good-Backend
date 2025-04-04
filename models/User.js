@@ -3,7 +3,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { jwtExpire, jwtSecret } from "../config/config";
+import { jwtExpire, jwtSecret } from "../config/config.js";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -42,13 +42,13 @@ const UserSchema = new mongoose.Schema(
       country: { type: String, trim: true },
     },
     phone: {
-        type: String,
-        match: [
-          /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/,
-          "Please provide a valid phone number",
-        ],
-      },
-  
+      type: String,
+      match: [
+        /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/,
+        "Please provide a valid phone number",
+      ],
+    },
+
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },
@@ -70,7 +70,7 @@ UserSchema.pre("save", async function (next) {
 });
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id, role: this.role }, jwtExpire, {
+  return jwt.sign({ id: this._id, role: this.role }, jwtSecret, {
     expiresIn: jwtExpire,
   });
 };
