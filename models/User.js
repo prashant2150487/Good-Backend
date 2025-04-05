@@ -5,14 +5,21 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { jwtExpire, jwtSecret } from "../config/config.js";
 
+
+
+
 const UserSchema = new mongoose.Schema(
   {
-    name: {
+    firstName: {
       type: String,
-      required: [true, "Name is required"],
+      required: [true, "First name is required"],
       trim: true,
     },
-
+    lastName: {
+      type: String,
+      required: [true, "Last name is required"],
+      trim: true,
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -29,36 +36,54 @@ const UserSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
+    country: {
+      type: String,
+      required: [true, "Country is required"],
+      trim: true,
+    },
+    city:{
+      type: String,
+      required: [true, "City is required"],
+      trim: true,
+    },
+    dateOfBirth: {
+      type: Date,
+      required: [true, "Date of birth is required"],
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+      required: [true, "Gender is required"],
+    },
+    phoneCountryCode: {
+      type: String,
+      required: [true, "Phone country code is required"],
+      trim: true,
+    },
+    phoneNo: {
+      type: String,
+      required: [true, "Phone number is required"],
+      match: [/^\d{7,15}$/, "Please provide a valid phone number"],
+    },
+    whatsappSubscribe: {
+      type: Boolean,
+      default: false,
+    },
     role: {
       type: String,
       enum: ["user", "admin"],
-      default: "user",
+      default: "admin",
     },
-    address: {
-      street: String,
-      city: { type: String, trim: true },
-      state: { type: String, trim: true },
-      zipCode: { type: String, trim: true },
-      country: { type: String, trim: true },
-    },
-    phone: {
-      type: String,
-      match: [
-        /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/,
-        "Please provide a valid phone number",
-      ],
-    },
-
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },
-
   {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
+
 
 // Encrypt password using bcrypt
 UserSchema.pre("save", async function (next) {

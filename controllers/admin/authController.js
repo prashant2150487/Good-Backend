@@ -57,6 +57,78 @@ const checkUser = async (req, res) => {
   }
 };
 
+const registerUser = async (req, res) => {
+  try {
+    const {
+      email,
+      firstName,
+      lastName,
+      password,
+      country,
+      dateOfBirth,
+      gender,
+      phoneCountryCode,
+      phoneNo,
+      whatsappSubscribe,
+      city,
+      role = "admin",
+    } = req.body;
+    // Validate Input
+    if (!email || !firstName || !lastName || !password) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Please provide all required fields (email, firstName, lastName, password)",
+      });
+    }
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
+    // Combine full name
+    // Create new user
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+      city,
+      country,
+      phoneCountryCode,
+      phoneNo,
+      gender,
+      dateOfBirth,
+      whatsappSubscribe,
+    });
+
+    if (user) {
+      const token = user.getSignedJwtToken();
+      res.status(201).json({
+        success: true,
+        token,
+        message: "User registered successfully",
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      });
+    } else {
+      res.status(400);
+      throw new Error("Invalid user data");
+    }
+  } catch (error) {
+    console.error("Server error in registerUser:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during registration",
+    });
+  }
+};
 // Add a new route to verify OTP
 const verifyOTP = async (req, res) => {
   try {
@@ -132,4 +204,4 @@ const sendOTPEmail = async (email, otp) => {
   // await transporter.sendMail(mailOptions);
 };
 
-export { checkUser };
+export { checkUser , registerUser};
