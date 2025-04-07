@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/database.js";
 import adminAuthRoutes from "./routes/admin/auth.js";
+import cors from 'cors';
 
 // Load environment variables
 dotenv.config();
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware to parse JSON body
 app.use(express.json());
+app.use(cors());
 
 // Connect to MongoDB
 connectDB();
