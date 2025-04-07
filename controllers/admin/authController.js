@@ -1,7 +1,8 @@
-// @desc    Register admin
-// @route   POST /api/admin/auth/register
 
+import nodemailer from 'nodemailer';
+import OTP from "../../models/Otp.js";
 import User from "../../models/User.js";
+import { emailPass, emailUser } from '../../config/config.js';
 const checkUser = async (req, res) => {
   try {
     const { email } = req.body;
@@ -25,8 +26,9 @@ const checkUser = async (req, res) => {
     if (user) {
       // Email exists, generate and send OTP
       const otp = generateOTP(); //6 digit OTP
+      console.log(otp)
       // Store OTP in database with expiry (15 minutes)
-      await Option.findOneAndUpdate(
+      await OTP.findOneAndUpdate(
         {
           email,
         },
@@ -89,7 +91,6 @@ const registerUser = async (req, res) => {
         message: "User already exists",
       });
     }
-    // Combine full name
     // Create new user
     const user = await User.create({
       firstName,
@@ -188,20 +189,21 @@ const generateOTP = () => {
 const sendOTPEmail = async (email, otp) => {
   // Implement your email sending logic here
   // Example with nodemailer:
-  // const transporter = nodemailer.createTransport({
-  //   service: 'gmail',
-  //   auth: {
-  //     user: process.env.EMAIL_USER,
-  //     pass: process.env.EMAIL_PASS
-  //   }
-  // });
-  // const mailOptions = {
-  //   from: process.env.EMAIL_USER,
-  //   to: email,
-  //   subject: 'Your OTP for Login',
-  //   text: `Your OTP is ${otp}. It will expire in 15 minutes.`
-  // };
-  // await transporter.sendMail(mailOptions);
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    secure: false,
+    auth: {
+      user: emailUser,
+      pass: emailPass
+    }
+  });
+  const mailOptions = {
+    from: emailUser,
+    to: email,
+    subject: 'Your OTP for Login',
+    text: `Your OTP is ${otp}. It will expire in 15 minutes.`
+  };
+  await transporter.sendMail(mailOptions);
 };
 
 export { checkUser , registerUser};

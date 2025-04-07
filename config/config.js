@@ -6,3 +6,5 @@ export const jwtSecret = process.env.JWT_SECRET || "fallbackSecretKey";
 export const jwtExpire = process.env.JWT_EXPIRE || "30d";
 export const mongoURI = process.env.MONGO_URI;
 export const port = process.env.PORT || 5000;
+export const emailUser = process.env.EMAIL_USER;
+export const emailPass = process.env.EMAIL_PASS;
