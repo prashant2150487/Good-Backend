@@ -12,7 +12,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware to parse JSON body
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173", // React frontend
+  credentials: true, // allow cookies if you're using sessions or JWT with cookies
+}));
 
 // Connect to MongoDB
 connectDB();
