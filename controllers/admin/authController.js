@@ -1,8 +1,7 @@
-
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 import OTP from "../../models/Otp.js";
 import User from "../../models/User.js";
-import { emailPass, emailUser } from '../../config/config.js';
+import { emailPass, emailUser } from "../../config/config.js";
 const checkUser = async (req, res) => {
   try {
     const { email } = req.body;
@@ -26,7 +25,7 @@ const checkUser = async (req, res) => {
     if (user) {
       // Email exists, generate and send OTP
       const otp = generateOTP(); //6 digit OTP
-      console.log(otp)
+      console.log(otp);
       // Store OTP in database with expiry (15 minutes)
       await OTP.findOneAndUpdate(
         {
@@ -40,6 +39,13 @@ const checkUser = async (req, res) => {
       );
       // Send OTP to user's email
       await sendOTPEmail(email, otp);
+      return res.status(200).json({
+
+        success: true,
+        emailExist: true,
+        message: "OTP sent to your email",
+        invalidDomain: false,
+      });
     } else {
       // Email doesn't exist, client should redirect to registration
       return res.status(200).json({
@@ -187,23 +193,22 @@ const generateOTP = () => {
 };
 // Helper function to send OTP via email
 const sendOTPEmail = async (email, otp) => {
-  // Implement your email sending logic here
-  // Example with nodemailer:
+  console.log(email, emailUser, emailPass);
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    secure: false,
+    service: "gmail",
     auth: {
       user: emailUser,
-      pass: emailPass
-    }
+      pass: emailPass,
+    },
   });
+
   const mailOptions = {
     from: emailUser,
     to: email,
-    subject: 'Your OTP for Login',
-    text: `Your OTP is ${otp}. It will expire in 15 minutes.`
+    subject: "Your OTP for Login",
+    text: `Your OTP is ${otp}. It will expire in 15 minutes.`,
   };
+
   await transporter.sendMail(mailOptions);
 };
-
-export { checkUser , registerUser};
+export { checkUser, registerUser };
