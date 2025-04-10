@@ -1,7 +1,7 @@
-import nodemailer from "nodemailer";
+
 import OTP from "../../models/Otp.js";
 import User from "../../models/User.js";
-import { emailPass, emailUser } from "../../config/config.js";
+import { generateOTP, sendOTPEmail } from "../../helper/utils.js";
 const checkUser = async (req, res) => {
   try {
     const { email } = req.body;
@@ -195,37 +195,5 @@ const verifyOTP = async (req, res) => {
     });
   }
 };
-// Helper function to generate 6-digit OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
-// Helper function to send OTP via email
-const sendOTPEmail = async (email, otp) => {
-    // Make sure credentials are available
-    if (!emailUser || !emailPass) {
-      throw new Error('Email credentials not configured');
-    }
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: emailUser,
-      pass: emailPass,
-    },
-  });
 
-  const mailOptions = {
-    from: emailUser,
-    to: email,
-    subject: "Your OTP for Login",
-    text: `Your OTP is ${otp}. It will expire in 15 minutes.`,
-  };
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    return info;
-  } catch (error) {
-    console.error(`Failed to send email to ${email}:`, error);
-    throw error; 
-  }
-
-};
 export { checkUser, registerUser };
