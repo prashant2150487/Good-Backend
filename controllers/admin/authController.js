@@ -25,7 +25,6 @@ const checkUser = async (req, res) => {
     if (user) {
       // Email exists, generate and send OTP
       const otp = generateOTP(); //6 digit OTP
-      console.log(otp);
       // Store OTP in database with expiry (15 minutes)
       await OTP.findOneAndUpdate(
         {
@@ -38,14 +37,23 @@ const checkUser = async (req, res) => {
         { upsert: true, new: true }
       );
       // Send OTP to user's email
-      await sendOTPEmail(email, otp);
-      return res.status(200).json({
-
-        success: true,
-        emailExist: true,
-        message: "OTP sent to your email",
-        invalidDomain: false,
-      });
+      try {
+        await sendOTPEmail(email, otp);
+        return res.status(200).json({
+          success: true,
+          emailExist: true,
+          message: "OTP sent to your email",
+          invalidDomain: false,
+        });
+      } catch (error) {
+        console.error("Error sending OTP email:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to send OTP email",
+          error: error.message,
+          invalidDomain: false,
+        });
+      }
     } else {
       // Email doesn't exist, client should redirect to registration
       return res.status(200).json({
@@ -58,7 +66,7 @@ const checkUser = async (req, res) => {
   } catch (error) {
     console.error("Server error in checkUser:", error);
     res.status(500).json({
-      success: true,
+      success: false,
       message: "Server error",
       error: error.message,
     });
@@ -193,7 +201,10 @@ const generateOTP = () => {
 };
 // Helper function to send OTP via email
 const sendOTPEmail = async (email, otp) => {
-  console.log(email, emailUser, emailPass);
+    // Make sure credentials are available
+    if (!emailUser || !emailPass) {
+      throw new Error('Email credentials not configured');
+    }
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -208,7 +219,13 @@ const sendOTPEmail = async (email, otp) => {
     subject: "Your OTP for Login",
     text: `Your OTP is ${otp}. It will expire in 15 minutes.`,
   };
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (error) {
+    console.error(`Failed to send email to ${email}:`, error);
+    throw error; 
+  }
 
-  await transporter.sendMail(mailOptions);
 };
 export { checkUser, registerUser };
