@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/database.js";
 import adminAuthRoutes from "./routes/admin/auth.js";
+import countryStateCityRoutes from "./routes/admin/user.js";
 import cors from 'cors';
 
 // Load environment variables
@@ -24,6 +25,7 @@ connectDB();
 
 // Admin routes
 app.use("/api/admin/auth", adminAuthRoutes);
+app.use("/api/admin/user", countryStateCityRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello, Node.js with Mongoose!");
