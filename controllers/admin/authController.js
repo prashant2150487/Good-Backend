@@ -1,6 +1,6 @@
-
 import OTP from "../../models/Otp.js";
 import User from "../../models/User.js";
+import bcrypt from "bcryptjs";
 import { generateOTP, sendOTPEmail } from "../../helper/utils.js";
 const checkUser = async (req, res) => {
   try {
@@ -25,13 +25,16 @@ const checkUser = async (req, res) => {
     if (user) {
       // Email exists, generate and send OTP
       const otp = generateOTP(); //6 digit OTP
+      const salt = await bcrypt.genSalt(10);
+      const hashedOtp = await bcrypt.hash(otp, salt);
+
       // Store OTP in database with expiry (15 minutes)
       await OTP.findOneAndUpdate(
         {
           email,
         },
         {
-          otp,
+          otp: hashedOtp,
           expiresAt: new Date(Date.now() + 15 * 60 * 1000),
         },
         { upsert: true, new: true }
@@ -153,10 +156,11 @@ const verifyOTP = async (req, res) => {
     if (!email || !otp) {
       return res.status(400).json({
         success: false,
-        message: "Please provide email and OTP",
+        message: "Please provide both email and OTP",
       });
     }
 
+    // Find OTP record that hasn't expired
     const otpRecord = await OTP.findOne({
       email,
       expiresAt: { $gt: new Date() },
@@ -169,7 +173,9 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    if (otpRecord.otp !== otp) {
+    // Compare entered OTP with hashed OTP in DB
+    const isMatch = await otpRecord.matchOTP(otp);
+    if (!isMatch) {
       return res.status(400).json({
         success: false,
         message: "Invalid OTP",
@@ -179,11 +185,17 @@ const verifyOTP = async (req, res) => {
     // OTP is valid, delete it to prevent reuse
     await OTP.findOneAndDelete({ email });
 
-    // Generate authentication token for the user
+    // Check if user exists
     const user = await User.findOne({ email });
-    const token = user.getSignedJwtToken();
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
-    // Implement this function
+    // Generate JWT token
+    const token = user.getSignedJwtToken();
 
     return res.status(200).json({
       success: true,
@@ -191,6 +203,7 @@ const verifyOTP = async (req, res) => {
       token,
     });
   } catch (error) {
+    console.error("OTP verification error:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
@@ -199,4 +212,4 @@ const verifyOTP = async (req, res) => {
   }
 };
 
-export { checkUser, registerUser , verifyOTP };
+export { checkUser, registerUser, verifyOTP };
