@@ -148,6 +148,7 @@ const registerUser = async (req, res) => {
 const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
+    console.log("Received OTP verification request:", req.body);
 
     if (!email || !otp) {
       return res.status(400).json({
@@ -180,7 +181,9 @@ const verifyOTP = async (req, res) => {
 
     // Generate authentication token for the user
     const user = await User.findOne({ email });
-    const token = generateAuthToken(user); // Implement this function
+    const token = user.getSignedJwtToken();
+
+    // Implement this function
 
     return res.status(200).json({
       success: true,
@@ -196,4 +199,4 @@ const verifyOTP = async (req, res) => {
   }
 };
 
-export { checkUser, registerUser };
+export { checkUser, registerUser , verifyOTP };
