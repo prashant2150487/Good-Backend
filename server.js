@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware to parse JSON body
 app.use(express.json());
 app.use(cors({
-  origin: "http://localhost:5173", // React frontend
+  origin: ["http://localhost:5173", "https://good-backend-two.vercel.app"], // React frontend
   credentials: true, // allow cookies if you're using sessions or JWT with cookies
 }));
 
