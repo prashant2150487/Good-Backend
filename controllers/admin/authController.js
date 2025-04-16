@@ -36,6 +36,7 @@ const checkUser = async (req, res) => {
         {
           otp: hashedOtp,
           expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+          attempts: 0,
         },
         { upsert: true, new: true }
       );
