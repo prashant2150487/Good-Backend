@@ -166,20 +166,34 @@ const verifyOTP = async (req, res) => {
       email,
       expiresAt: { $gt: new Date() },
     });
-
+    console.log(otpRecord,"record");
     if (!otpRecord) {
       return res.status(400).json({
         success: false,
         message: "OTP expired or not found",
       });
     }
+     // Check if max attempts reached
+     if (otpRecord.attempts > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum attempts reached. Please request a new OTP.",
+        maxAttempts: true
+      });
+    }
 
     // Compare entered OTP with hashed OTP in DB
     const isMatch = await otpRecord.matchOTP(otp);
     if (!isMatch) {
+      otpRecord.attempts += 1; // Increment attempts
+      await otpRecord.save(); // Save updated attempts
+      const remainingAttempts = 5 - otpRecord.attempts;
       return res.status(400).json({
         success: false,
-        message: "Invalid OTP",
+        message: `Invalid OTP. ${remainingAttempts > 0 ? `${remainingAttempts} attempts remaining.` : 'No attempts remaining. Please request a new OTP.'}`,
+        maxAttemptsReached: remainingAttempts <= 0,
+        remainingAttempts,
+
       });
     }
 
@@ -187,7 +201,7 @@ const verifyOTP = async (req, res) => {
     await OTP.findOneAndDelete({ email });
 
     // Check if user exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }); 
     if (!user) {
       return res.status(404).json({
         success: false,
